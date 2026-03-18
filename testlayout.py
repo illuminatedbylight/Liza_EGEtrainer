@@ -6,11 +6,14 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 
+from random_questions import random_questions
+
 class TestScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.current_question = 1
-        self.total_questions = 5
+        self.total_questions = 6
+        self.questions = [quest for quest in random_questions()]
         self.create_screen()
 
     def create_screen(self):
@@ -77,27 +80,15 @@ class TestScreen(Screen):
         self.middle.clear_widgets()
         self.upper.text = f'Задание №{self.current_question} ({self.current_question}/{self.total_questions})'
 
-        if self.current_question in [1, 2, 3]:
+        if self.questions[self.current_question - 1][2] == "multi":
             self.show_checkbox_question()
-        elif self.current_question == 4:
+        elif self.questions[self.current_question - 1][2] == "numbers":
             self.show_digits_question()
-        elif self.current_question == 5:
+        elif self.questions[self.current_question - 1][2] == "word":
             self.show_word_question()
 
     #выбор нескольких ответов
     def show_checkbox_question(self):
-
-        helping = Label(
-            text='Вопрос с выбором нескольких ответов\n(отметь нужные варианты)',
-            font_size='10sp',
-            color=(0.88, 0.38, 0.47, 1),
-            size_hint=(1, 0.3),
-            halign='center',
-            valign='top'
-        )
-
-        self.middle.add_widget(helping)
-
         helping = Label(
             text='Вопрос с выбором нескольких ответов\n(отметь нужные варианты)',
             font_size='10sp',
@@ -107,6 +98,17 @@ class TestScreen(Screen):
             valign='top'
         )
         self.middle.add_widget(helping)
+
+        question = Label(
+            text=self.questions[self.current_question - 1][1],
+            font_size='18sp',
+            color=(0.88, 0.38, 0.47, 1),
+            size_hint=(1, 0.3),
+            halign='center',
+            valign='top'
+        )
+
+        self.middle.add_widget(question)
 
         answers_box = BoxLayout(
             orientation='vertical',
@@ -130,7 +132,6 @@ class TestScreen(Screen):
         self.middle.add_widget(answers_box)
 
     def show_digits_question(self):
-
         question_label = Label(
             text='Вопрос с вводом цифр\n(введите цифры \nв порядке возрастания\nбез пробелов)',
             font_size='18sp',
@@ -140,6 +141,17 @@ class TestScreen(Screen):
             valign='top'
         )
         self.middle.add_widget(question_label)
+
+        question = Label(
+            text=self.questions[self.current_question - 1][1],
+            font_size='18sp',
+            color=(0.88, 0.38, 0.47, 1),
+            size_hint=(1, 0.3),
+            halign='center',
+            valign='top'
+        )
+
+        self.middle.add_widget(question)
 
         self.middle.add_widget(Label(size_hint=(1, 0.2)))
 
@@ -166,6 +178,17 @@ class TestScreen(Screen):
         )
         self.middle.add_widget(question_label)
 
+        question = Label(
+            text=self.questions[self.current_question - 1][1],
+            font_size='18sp',
+            color=(0.88, 0.38, 0.47, 1),
+            size_hint=(1, 0.3),
+            halign='center',
+            valign='top'
+        )
+
+        self.middle.add_widget(question)
+
         self.middle.add_widget(Label(size_hint=(1, 0.2)))
 
         word_input = TextInput(
@@ -179,6 +202,7 @@ class TestScreen(Screen):
             padding=[10, 10]
         )
         self.middle.add_widget(word_input)
+
     def go_next(self, instance):
 
         if self.current_question < self.total_questions:
