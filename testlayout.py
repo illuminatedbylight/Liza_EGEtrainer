@@ -1,3 +1,5 @@
+import sqlite3, json
+
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -8,12 +10,16 @@ from kivy.uix.textinput import TextInput
 
 from random_questions import random_questions
 
+
 class TestScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.current_question = 1
         self.total_questions = 6
         self.questions = [quest for quest in random_questions()]
+        self.word_input = None
+        self.digits_input = None
+        self.multi_input = []
         self.create_screen()
 
     def create_screen(self):
@@ -52,7 +58,6 @@ class TestScreen(Screen):
             background_normal=''
         )
         button_back.bind(on_press=self.go_back)
-
 
         button_next = Button(
             text='Далее',
@@ -116,9 +121,18 @@ class TestScreen(Screen):
             spacing=10
         )
 
-        for i in range(5):
+        with sqlite3.connect('questions.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(f'''
+                select answer
+                from answers
+                where question_id = {self.questions[self.current_question - 1][0]}
+            ''')
+            list_answers = [ans[0] for ans in cursor.fetchall()]
+
+        for ans in list_answers:
             checkbox = ToggleButton(
-                text=f'Вариант ответа {i + 1}',
+                text=ans,
                 group=None,
                 size_hint=(0.9, None),
                 height=50,
@@ -128,6 +142,7 @@ class TestScreen(Screen):
                 background_normal=''
             )
             answers_box.add_widget(checkbox)
+            self.multi_input.append(checkbox)
 
         self.middle.add_widget(answers_box)
 
@@ -155,7 +170,7 @@ class TestScreen(Screen):
 
         self.middle.add_widget(Label(size_hint=(1, 0.2)))
 
-        digits_input = TextInput(
+        self.digits_input = TextInput(
             hint_text='Например: 123',
             multiline=False,
             size_hint=(0.8, 0.15),
@@ -165,7 +180,7 @@ class TestScreen(Screen):
             background_color=(1, 1, 1, 1),
             padding=[10, 10]
         )
-        self.middle.add_widget(digits_input)
+        self.middle.add_widget(self.digits_input)
 
     def show_word_question(self):
         question_label = Label(
@@ -191,7 +206,7 @@ class TestScreen(Screen):
 
         self.middle.add_widget(Label(size_hint=(1, 0.2)))
 
-        word_input = TextInput(
+        self.word_input = TextInput(
             hint_text='Введите слово',
             multiline=False,
             size_hint=(0.8, 0.15),
@@ -201,16 +216,67 @@ class TestScreen(Screen):
             background_color=(1, 1, 1, 1),
             padding=[10, 10]
         )
-        self.middle.add_widget(word_input)
+        self.middle.add_widget(self.word_input)
 
     def go_next(self, instance):
 
-        if self.current_question < self.total_questions:
-            self.current_question += 1
-            self.show_question()
-        else:
-            print("Тест завершён! Переходим к результатам...")
-            self.manager.current = 'results'
+        next_flag = True
+
+        with open('answers.json', 'r', encoding='utf-8') as f:
+            answers = json.load(f)
+
+        if self.multi_input:
+            answers[str(self.current_question)] = {
+                str(self.questions[self.current_question - 1][0]): []
+            }
+            for box in self.multi_input:
+                if box.state == 'down':
+                    answers[str(self.current_question)][str(self.questions[self.current_question - 1][0])].append(box.text)
+            self.multi_input = []
+
+        if self.word_input:
+            for ch in '0123456789':
+                if ch in self.word_input.text:
+                    next_flag = False
+            if ' ' in self.word_input.text:
+                next_flag = False
+            if len(self.word_input.text) == 0:
+                next_flag = False
+            if next_flag:
+                answers[str(self.current_question)] = {
+                    str(self.questions[self.current_question - 1][0]): self.word_input.text
+                }
+                self.word_input = None
+            else:
+                self.word_input.text = ''
+                self.word_input.hint_text = 'Некорректный ввод!'
+
+        if self.digits_input:
+            try:
+                int(self.digits_input.text)
+            except ValueError:
+                next_flag = False
+            if ' ' in self.digits_input.text:
+                next_flag = False
+            if next_flag:
+                answers[str(self.current_question)] = {
+                    str(self.questions[self.current_question - 1][0]): self.digits_input.text
+                }
+                self.digits_input = None
+            else:
+                self.digits_input.text = ''
+                self.digits_input.hint_text = 'Некорректный ввод!'
+
+        with open('answers.json', 'w', encoding='utf-8') as f:
+            json.dump(answers, f, ensure_ascii=False, indent=4)
+
+        if next_flag:
+            if self.current_question < self.total_questions:
+                self.current_question += 1
+                self.show_question()
+            else:
+                print("Тест завершён! Переходим к результатам...")
+                self.manager.current = 'results'
 
     def go_back(self, instance):
 
