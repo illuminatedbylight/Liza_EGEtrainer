@@ -16,10 +16,14 @@ class TestScreen(Screen):
         super().__init__(**kwargs)
         self.current_question = 1
         self.total_questions = 6
-        self.questions = [quest for quest in random_questions()]
+        self.questions = random_questions()
         self.word_input = None
         self.digits_input = None
         self.multi_input = []
+
+        with open('answers.json', 'w', encoding='utf-8') as f:
+            json.dump({'1': {}, '2': {}, '3': {}, '4': {}, '5': {}, '6': {}}, f, ensure_ascii=False, indent=4)
+
         self.create_screen()
 
     def create_screen(self):

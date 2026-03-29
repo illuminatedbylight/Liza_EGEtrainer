@@ -1,9 +1,12 @@
 import json, sqlite3
+from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from testlayout import TestScreen
+
 
 class ResultsScreen(Screen):
     def __init__(self, **kwargs):
@@ -34,7 +37,7 @@ class ResultsScreen(Screen):
             spacing=20
         )
 
-        button_next = Button(
+        self.button_next = Button(
             text='Показать результаты',
             font_size='18sp',
             bold=True,
@@ -42,9 +45,9 @@ class ResultsScreen(Screen):
             color=(0.35, 0.45, 0.3, 1),
             background_normal=''
         )
-        button_next.bind(on_press=self.show_results)
+        self.button_next.bind(on_press=self.show_results)
 
-        self.navigation.add_widget(button_next)
+        self.navigation.add_widget(self.button_next)
 
         main_layout.add_widget(self.upper)
         main_layout.add_widget(self.middle)
@@ -78,7 +81,6 @@ class ResultsScreen(Screen):
                 else:
                     errors_ans.append([ans, answers[ans][list(answers[ans].keys())[0]], list_right_answers[0]])
             else:
-
                 count_right_multi_ans = 0
                 for multi_ans in answers[ans][list(answers[ans].keys())[0]]:
                     if multi_ans in list_right_answers:
@@ -102,4 +104,17 @@ class ResultsScreen(Screen):
                 valign='top'
             )
             self.middle.add_widget(res)
-        self.navigation.clear_widgets()
+        self.button_next.text = 'Подобрать новый вариант'
+        self.button_next.unbind(on_press=self.show_results)
+        self.button_next.bind(on_press=self.restart)
+
+
+    def restart(self, instance):
+        sm = App.get_running_app().root
+
+        sm.clear_widgets()
+
+        sm.add_widget(TestScreen(name='test'))
+        sm.add_widget(ResultsScreen(name='results'))
+
+        sm.current = 'test'

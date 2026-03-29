@@ -1,5 +1,3 @@
-import json
-
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
@@ -22,9 +20,6 @@ class EGEApp(App):
         sm.add_widget(SecondScreen(name='variant'))
         sm.add_widget(TestScreen(name='test'))
         sm.add_widget(ResultsScreen(name='results'))
-
-        with open('answers.json', 'w', encoding='utf-8') as f:
-            json.dump({'1': {}, '2': {}, '3': {}, '4': {}, '5': {}, '6': {}}, f, ensure_ascii=False, indent=4)
 
         return sm
 
