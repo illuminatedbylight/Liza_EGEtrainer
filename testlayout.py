@@ -33,7 +33,7 @@ class TestScreen(Screen):
             text=f'Задание №{self.current_question} ({self.current_question}/{self.total_questions})',
             font_size='20sp',
             bold=True,
-            color=(1, 1, 1, 1),
+            color=(0.35, 0.45, 0.3, 1),
             size_hint=(1, 0.1),
             pos_hint={'top': 1},
             halign='center'
@@ -67,7 +67,7 @@ class TestScreen(Screen):
             text='Далее',
             font_size='18sp',
             bold=True,
-            background_color=(0.95, 0.75, 0.8, 1),
+            background_color=(1, 0.73, 0.73, 1),
             color=(0.35, 0.45, 0.3, 1),
             background_normal=''
         )
@@ -86,6 +86,9 @@ class TestScreen(Screen):
 
 
     def show_question(self):
+        self.multi_input = []
+        self.word_input = None
+        self.digits_input = None
         self.middle.clear_widgets()
         self.upper.text = f'Задание №{self.current_question} ({self.current_question}/{self.total_questions})'
 
@@ -96,7 +99,17 @@ class TestScreen(Screen):
         elif self.questions[self.current_question - 1][2] == "word":
             self.show_word_question()
 
-    #выбор нескольких ответов
+    def load_saved_answer(self, question_num):
+        try:
+            with open('answers.json', 'r', encoding='utf-8') as f:
+                answers = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None
+
+        q_data = answers.get(str(question_num), {})
+        if not q_data:
+            return None
+        return list(q_data.values())[0]
     def show_checkbox_question(self):
         helping = Label(
             text='Вопрос с выбором нескольких ответов\n(отметь нужные варианты)',
@@ -106,7 +119,6 @@ class TestScreen(Screen):
             halign='center',
             valign='top'
         )
-        self.middle.add_widget(helping)
 
         question = Label(
             text=self.questions[self.current_question - 1][1],
@@ -141,14 +153,20 @@ class TestScreen(Screen):
                 size_hint=(0.9, None),
                 height=50,
                 pos_hint={'center_x': 0.5},
-                background_color=(1, 1, 1, 1),
-                color=(0.4, 0.4, 0.4, 1),
+                background_color=(0.67, 0.73, 0.53, 1),
+                color=(1, 0.94, 0.8, 1),
                 background_normal=''
             )
             answers_box.add_widget(checkbox)
             self.multi_input.append(checkbox)
 
         self.middle.add_widget(answers_box)
+        self.middle.add_widget(helping)
+        saved = self.load_saved_answer(self.current_question)
+        if saved is not None and isinstance(saved, list):
+            for checkbox in self.multi_input:
+                if checkbox.text in saved:
+                    checkbox.state = 'down'
 
     def show_digits_question(self):
         question_label = Label(
@@ -176,15 +194,19 @@ class TestScreen(Screen):
 
         self.digits_input = TextInput(
             hint_text='Например: 123',
+            hint_text_color=(0.35, 0.45, 0.3, 0.8),
             multiline=False,
             size_hint=(0.8, 0.15),
             pos_hint={'center_x': 0.5},
             font_size='16sp',
-            foreground_color=(0.4, 0.4, 0.4, 1),
-            background_color=(1, 1, 1, 1),
+            foreground_color=(0.35, 0.45, 0.3, 0.8),
+            background_color=(0.67, 0.73, 0.53, 0.5),
             padding=[10, 10]
         )
         self.middle.add_widget(self.digits_input)
+        saved = self.load_saved_answer(self.current_question)
+        if saved is not None and isinstance(saved, str):
+            self.digits_input.text = saved
 
     def show_word_question(self):
         question_label = Label(
@@ -221,6 +243,9 @@ class TestScreen(Screen):
             padding=[10, 10]
         )
         self.middle.add_widget(self.word_input)
+        saved = self.load_saved_answer(self.current_question)
+        if saved is not None and isinstance(saved, str):
+            self.word_input.text = saved
 
     def go_next(self, instance):
 
@@ -283,6 +308,7 @@ class TestScreen(Screen):
                 self.manager.current = 'results'
 
     def go_back(self, instance):
+
 
         if self.current_question > 1:
             self.current_question -= 1

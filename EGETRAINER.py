@@ -12,7 +12,7 @@ class EGEApp(App):
     def build(self):
 
         Window.size = (360, 640)
-        Window.clearcolor = (1.0, 0.93, 0.75, 1)
+        Window.clearcolor = (1, 0.94, 0.8, 1)
 
         sm = ScreenManager()
 
