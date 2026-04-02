@@ -1,6 +1,7 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
+from kivy.core.text import LabelBase
 
 
 class FirstScreen(Screen):
@@ -33,9 +34,10 @@ class FirstScreen(Screen):
         for line in lines:
             label = Label(
                 text=line,
-                font_size='24sp',
+                font_size='30sp',
                 bold=True,
                 color=(0.88, 0.38, 0.47, 1),
+                font_name='Roboto',
                 halign='center',
                 valign='middle'
             )
@@ -53,8 +55,8 @@ class FirstScreen(Screen):
 
         hint = Label(
             text='Нажми для продолжения',
-            font_size='14sp',
-            color=(0.88, 0.38, 0.47, 0.6),
+            font_size='20sp',
+            color=(0.88, 0.38, 0.47, 0.8),
             halign='center',
             valign='bottom'
         )
