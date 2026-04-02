@@ -111,10 +111,7 @@ class ResultsScreen(Screen):
 
     def restart(self, instance):
         sm = App.get_running_app().root
-
         sm.clear_widgets()
-
         sm.add_widget(TestScreen(name='test'))
         sm.add_widget(ResultsScreen(name='results'))
-
         sm.current = 'test'
